@@ -2,17 +2,18 @@ package models.daos
 
 import java.util.UUID
 
+import data.AuthTokenDBIO
 import models.AuthToken
-import models.daos.AuthTokenDAOImpl._
 import org.joda.time.DateTime
+import slick.basic.DatabaseConfig
+import slick.jdbc.JdbcProfile
 
-import scala.collection.mutable
 import scala.concurrent.Future
 
 /**
  * Give access to the [[AuthToken]] object.
  */
-class AuthTokenDAOImpl extends AuthTokenDAO {
+class AuthTokenDAOSlickImpl(dbConfig: DatabaseConfig[JdbcProfile]) extends AuthTokenDAO {
 
   /**
    * Finds a token by its ID.
@@ -20,19 +21,20 @@ class AuthTokenDAOImpl extends AuthTokenDAO {
    * @param id The unique token ID.
    * @return The found token or None if no token for the given ID could be found.
    */
-  def find(id: UUID) = Future.successful(tokens.get(id))
+  def find(id: UUID) =
+    dbConfig.db.run(AuthTokenDBIO.lookup(id))
 
   /**
    * Finds expired tokens.
    *
    * @param dateTime The current date time.
    */
-  def findExpired(dateTime: DateTime) = Future.successful {
-    tokens.filter {
-      case (_, token) =>
-        token.expiry.isBefore(dateTime)
-    }.values.toSeq
-  }
+  def findExpired(dateTime: DateTime) =
+    dbConfig.db.run(AuthTokenDBIO.findExpired(dateTime))
+//    tokens.filter {
+//      case (_, token) =>
+//        token.expiry.isBefore(dateTime)
+//    }.values.toSeq
 
   /**
    * Saves a token.
@@ -40,10 +42,8 @@ class AuthTokenDAOImpl extends AuthTokenDAO {
    * @param token The token to save.
    * @return The saved token.
    */
-  def save(token: AuthToken) = {
-    tokens += (token.id -> token)
-    Future.successful(token)
-  }
+  def save(token: AuthToken) =
+    dbConfig.db.run(AuthTokenDBIO.save(token))
 
   /**
    * Removes the token for the given ID.
@@ -51,19 +51,7 @@ class AuthTokenDAOImpl extends AuthTokenDAO {
    * @param id The ID for which the token should be removed.
    * @return A future to wait for the process to be completed.
    */
-  def remove(id: UUID) = {
-    tokens -= id
-    Future.successful(())
-  }
-}
+  def remove(id: UUID) =
+    dbConfig.db.run(AuthTokenDBIO.remove(id))
 
-/**
- * The companion object.
- */
-object AuthTokenDAOImpl {
-
-  /**
-   * The list of tokens.
-   */
-  val tokens: mutable.HashMap[UUID, AuthToken] = mutable.HashMap()
 }

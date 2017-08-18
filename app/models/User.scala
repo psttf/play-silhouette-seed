@@ -2,16 +2,26 @@ package models
 
 import java.util.UUID
 
-import com.mohiva.play.silhouette.api.{ Identity, LoginInfo }
+import com.mohiva.play.silhouette.api.util.PasswordInfo
+import com.mohiva.play.silhouette.api.{Identity, LoginInfo}
 
 case class User(
   userID: UUID,
-  loginInfo: LoginInfo,
+  providerID: String,
+  providerKey: String,
   firstName: Option[String],
   lastName: Option[String],
   fullName: Option[String],
   email: Option[String],
-  activated: Boolean) extends Identity {
+  activated: Boolean,
+  hasher: String,
+  password: String,
+  salt: Option[String] = None
+) extends Identity {
+
+  lazy val loginInfo = LoginInfo(providerID, providerKey)
+
+  lazy val passwordInfo = PasswordInfo(hasher, password, salt)
 
   /**
    * Tries to construct a name.
@@ -26,4 +36,31 @@ case class User(
       case _ => None
     }
   }
+}
+
+object User {
+  def withLoginInfo(
+    userID: UUID,
+    loginInfo: LoginInfo,
+    firstName: Option[String],
+    lastName: Option[String],
+    fullName: Option[String],
+    email: Option[String],
+    activated: Boolean,
+    hasher: String,
+    password: String,
+    salt: Option[String] = None
+  ) = apply(
+    userID,
+    loginInfo.providerID,
+    loginInfo.providerKey,
+    firstName,
+    lastName,
+    fullName,
+    email,
+    activated,
+    hasher,
+    password,
+    salt
+  )
 }

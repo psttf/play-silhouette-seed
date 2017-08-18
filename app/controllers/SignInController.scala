@@ -25,7 +25,6 @@ import scala.concurrent.{ ExecutionContext, Future }
  * @param silhouette             The Silhouette stack.
  * @param userService            The user service implementation.
  * @param credentialsProvider    The credentials provider.
- * @param socialProviderRegistry The social provider registry.
  * @param configuration          The Play configuration.
  * @param clock                  The clock instance.
  * @param webJarsUtil            The webjar util.
@@ -36,7 +35,6 @@ class SignInController (
   silhouette: Silhouette[DefaultEnv],
   userService: UserService,
   credentialsProvider: CredentialsProvider,
-  socialProviderRegistry: SocialProviderRegistry,
   configuration: Configuration,
   clock: Clock
 )(
@@ -52,7 +50,7 @@ class SignInController (
    * @return The result to display.
    */
   def view = silhouette.UnsecuredAction.async { implicit request: Request[AnyContent] =>
-    Future.successful(Ok(views.html.signIn(SignInForm.form, socialProviderRegistry)))
+    Future.successful(Ok(views.html.signIn(SignInForm.form)))
   }
 
   /**
@@ -62,7 +60,7 @@ class SignInController (
    */
   def submit = silhouette.UnsecuredAction.async { implicit request: Request[AnyContent] =>
     SignInForm.form.bindFromRequest.fold(
-      form => Future.successful(BadRequest(views.html.signIn(form, socialProviderRegistry))),
+      form => Future.successful(BadRequest(views.html.signIn(form))),
       data => {
         val credentials = Credentials(data.email, data.password)
         credentialsProvider.authenticate(credentials).flatMap { loginInfo =>

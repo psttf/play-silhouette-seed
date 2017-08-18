@@ -66,14 +66,17 @@ class SignUpController (
             Future.successful(result)
           case None =>
             val authInfo = passwordHasherRegistry.current.hash(data.password)
-            val user = User(
+            val user = User.withLoginInfo(
               userID = UUID.randomUUID(),
               loginInfo = loginInfo,
               firstName = Some(data.firstName),
               lastName = Some(data.lastName),
               fullName = Some(data.firstName + " " + data.lastName),
               email = Some(data.email),
-              activated = false
+              activated = false,
+              hasher = authInfo.hasher,
+              password = authInfo.password,
+              salt = authInfo.salt
             )
             for {
               user <- userService.save(user)
