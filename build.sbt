@@ -1,7 +1,3 @@
-import com.typesafe.sbt.SbtScalariform._
-
-import scalariform.formatter.preferences._
-
 name := "play-silhouette-seed"
 
 version := "5.0.0"
@@ -58,14 +54,3 @@ scalacOptions ++= Seq(
   // https://github.com/playframework/twirl/issues/105
   "-Xlint:-unused,_"
 )
-
-//********************************************************
-// Scalariform settings
-//********************************************************
-
-defaultScalariformSettings
-
-ScalariformKeys.preferences := ScalariformKeys.preferences.value
-  .setPreference(FormatXml, false)
-  .setPreference(DoubleIndentClassDeclaration, false)
-  .setPreference(DanglingCloseParenthesis, Preserve)
