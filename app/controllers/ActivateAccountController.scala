@@ -2,7 +2,6 @@ package controllers
 
 import java.net.URLDecoder
 import java.util.UUID
-import javax.inject.Inject
 
 import com.mohiva.play.silhouette.api._
 import com.mohiva.play.silhouette.impl.providers.CredentialsProvider
@@ -24,7 +23,7 @@ import scala.concurrent.{ ExecutionContext, Future }
  * @param mailerClient     The mailer client.
  * @param ex               The execution context.
  */
-class ActivateAccountController @Inject() (
+class ActivateAccountController (
   components: ControllerComponents,
   silhouette: Silhouette[DefaultEnv],
   userService: UserService,
@@ -77,9 +76,9 @@ class ActivateAccountController @Inject() (
           userService.save(user.copy(activated = true)).map { _ =>
             Redirect(routes.SignInController.view()).flashing("success" -> Messages("account.activated"))
           }
-        case _ => Future.successful(Redirect(routes.SignInController.view()).flashing("error" -> Messages("invalid.activation.link")))
+        case _ => Future.successful(Redirect(routes.SignInController.view()).flashing("danger" -> Messages("invalid.activation.link")))
       }
-      case None => Future.successful(Redirect(routes.SignInController.view()).flashing("error" -> Messages("invalid.activation.link")))
+      case None => Future.successful(Redirect(routes.SignInController.view()).flashing("danger" -> Messages("invalid.activation.link")))
     }
   }
 }

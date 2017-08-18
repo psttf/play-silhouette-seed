@@ -1,7 +1,5 @@
 package controllers
 
-import javax.inject.Inject
-
 import com.mohiva.play.silhouette.api.Authenticator.Implicits._
 import com.mohiva.play.silhouette.api._
 import com.mohiva.play.silhouette.api.exceptions.ProviderException
@@ -33,7 +31,7 @@ import scala.concurrent.{ ExecutionContext, Future }
  * @param webJarsUtil            The webjar util.
  * @param assets                 The Play assets finder.
  */
-class SignInController @Inject() (
+class SignInController (
   components: ControllerComponents,
   silhouette: Silhouette[DefaultEnv],
   userService: UserService,
@@ -92,7 +90,7 @@ class SignInController @Inject() (
           }
         }.recover {
           case _: ProviderException =>
-            Redirect(routes.SignInController.view()).flashing("error" -> Messages("invalid.credentials"))
+            Redirect(routes.SignInController.view()).flashing("danger" -> Messages("invalid.credentials"))
         }
       }
     )

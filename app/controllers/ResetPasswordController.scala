@@ -1,7 +1,6 @@
 package controllers
 
 import java.util.UUID
-import javax.inject.Inject
 
 import com.mohiva.play.silhouette.api._
 import com.mohiva.play.silhouette.api.repositories.AuthInfoRepository
@@ -29,7 +28,7 @@ import scala.concurrent.{ ExecutionContext, Future }
  * @param assets                 The Play assets finder.
  * @param ex                     The execution context.
  */
-class ResetPasswordController @Inject() (
+class ResetPasswordController (
   components: ControllerComponents,
   silhouette: Silhouette[DefaultEnv],
   userService: UserService,
@@ -52,7 +51,7 @@ class ResetPasswordController @Inject() (
   def view(token: UUID) = silhouette.UnsecuredAction.async { implicit request: Request[AnyContent] =>
     authTokenService.validate(token).map {
       case Some(_) => Ok(views.html.resetPassword(ResetPasswordForm.form, token))
-      case None => Redirect(routes.SignInController.view()).flashing("error" -> Messages("invalid.reset.link"))
+      case None => Redirect(routes.SignInController.view()).flashing("danger" -> Messages("invalid.reset.link"))
     }
   }
 
@@ -73,10 +72,10 @@ class ResetPasswordController @Inject() (
               authInfoRepository.update[PasswordInfo](user.loginInfo, passwordInfo).map { _ =>
                 Redirect(routes.SignInController.view()).flashing("success" -> Messages("password.reset"))
               }
-            case _ => Future.successful(Redirect(routes.SignInController.view()).flashing("error" -> Messages("invalid.reset.link")))
+            case _ => Future.successful(Redirect(routes.SignInController.view()).flashing("danger" -> Messages("invalid.reset.link")))
           }
         )
-      case None => Future.successful(Redirect(routes.SignInController.view()).flashing("error" -> Messages("invalid.reset.link")))
+      case None => Future.successful(Redirect(routes.SignInController.view()).flashing("danger" -> Messages("invalid.reset.link")))
     }
   }
 }

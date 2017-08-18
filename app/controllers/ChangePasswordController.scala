@@ -1,7 +1,5 @@
 package controllers
 
-import javax.inject.Inject
-
 import com.mohiva.play.silhouette.api._
 import com.mohiva.play.silhouette.api.actions.SecuredRequest
 import com.mohiva.play.silhouette.api.exceptions.ProviderException
@@ -28,7 +26,7 @@ import scala.concurrent.{ ExecutionContext, Future }
  * @param assets                 The Play assets finder.
  * @param ex                     The execution context.
  */
-class ChangePasswordController @Inject() (
+class ChangePasswordController (
   components: ControllerComponents,
   silhouette: Silhouette[DefaultEnv],
   credentialsProvider: CredentialsProvider,
@@ -70,7 +68,7 @@ class ChangePasswordController @Inject() (
             }
           }.recover {
             case _: ProviderException =>
-              Redirect(routes.ChangePasswordController.view()).flashing("error" -> Messages("current.password.invalid"))
+              Redirect(routes.ChangePasswordController.view()).flashing("danger" -> Messages("current.password.invalid"))
           }
         }
       )

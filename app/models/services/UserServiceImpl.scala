@@ -1,7 +1,6 @@
 package models.services
 
 import java.util.UUID
-import javax.inject.Inject
 
 import com.mohiva.play.silhouette.api.LoginInfo
 import com.mohiva.play.silhouette.impl.providers.CommonSocialProfile
@@ -16,7 +15,7 @@ import scala.concurrent.{ ExecutionContext, Future }
  * @param userDAO The user DAO implementation.
  * @param ex      The execution context.
  */
-class UserServiceImpl @Inject() (userDAO: UserDAO)(implicit ex: ExecutionContext) extends UserService {
+class UserServiceImpl (userDAO: UserDAO)(implicit ex: ExecutionContext) extends UserService {
 
   /**
    * Retrieves a user that matches the specified ID.
@@ -57,8 +56,7 @@ class UserServiceImpl @Inject() (userDAO: UserDAO)(implicit ex: ExecutionContext
           firstName = profile.firstName,
           lastName = profile.lastName,
           fullName = profile.fullName,
-          email = profile.email,
-          avatarURL = profile.avatarURL
+          email = profile.email
         ))
       case None => // Insert a new user
         userDAO.save(User(
@@ -68,7 +66,6 @@ class UserServiceImpl @Inject() (userDAO: UserDAO)(implicit ex: ExecutionContext
           lastName = profile.lastName,
           fullName = profile.fullName,
           email = profile.email,
-          avatarURL = profile.avatarURL,
           activated = true
         ))
     }

@@ -1,7 +1,6 @@
 package models.services
 
 import java.util.UUID
-import javax.inject.Inject
 
 import com.mohiva.play.silhouette.api.util.Clock
 import models.AuthToken
@@ -19,7 +18,7 @@ import scala.language.postfixOps
  * @param clock        The clock instance.
  * @param ex           The execution context.
  */
-class AuthTokenServiceImpl @Inject() (
+class AuthTokenServiceImpl (
   authTokenDAO: AuthTokenDAO,
   clock: Clock
 )(

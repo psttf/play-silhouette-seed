@@ -1,7 +1,5 @@
 package jobs
 
-import javax.inject.Inject
-
 import akka.actor._
 import com.mohiva.play.silhouette.api.util.Clock
 import jobs.AuthTokenCleaner.Clean
@@ -16,7 +14,7 @@ import scala.concurrent.ExecutionContext.Implicits.global
  * @param service The auth token service implementation.
  * @param clock The clock implementation.
  */
-class AuthTokenCleaner @Inject() (
+class AuthTokenCleaner (
   service: AuthTokenService,
   clock: Clock)
   extends Actor with Logger {

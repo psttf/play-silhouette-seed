@@ -1,7 +1,5 @@
 package controllers
 
-import javax.inject.Inject
-
 import com.mohiva.play.silhouette.api._
 import com.mohiva.play.silhouette.impl.providers.CredentialsProvider
 import forms.ForgotPasswordForm
@@ -26,7 +24,7 @@ import scala.concurrent.{ ExecutionContext, Future }
  * @param assets           The Play assets finder.
  * @param ex               The execution context.
  */
-class ForgotPasswordController @Inject() (
+class ForgotPasswordController (
   components: ControllerComponents,
   silhouette: Silhouette[DefaultEnv],
   userService: UserService,

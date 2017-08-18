@@ -1,6 +1,5 @@
 package controllers
 
-import javax.inject.Inject
 
 import com.mohiva.play.silhouette.api.actions.SecuredRequest
 import com.mohiva.play.silhouette.api.{ LogoutEvent, Silhouette }
@@ -19,7 +18,7 @@ import scala.concurrent.Future
  * @param webJarsUtil The webjar util.
  * @param assets      The Play assets finder.
  */
-class ApplicationController @Inject() (
+class ApplicationController (
   components: ControllerComponents,
   silhouette: Silhouette[DefaultEnv]
 )(

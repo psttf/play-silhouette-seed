@@ -18,7 +18,8 @@ welcome.signed.in = Welcome, you are now signed in!
 sign.up.account = Sign up for a new account
 sign.in.credentials = Sign in with your credentials
 
-error = Error!
+danger = Error!
+warning = Warning!
 info = Info!
 success = Success!
 home = Home
