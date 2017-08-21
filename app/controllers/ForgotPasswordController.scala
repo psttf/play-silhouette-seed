@@ -2,33 +2,23 @@ package controllers
 
 import com.mohiva.play.silhouette.api._
 import com.mohiva.play.silhouette.impl.providers.CredentialsProvider
+import data.{AuthTokenDBIO, UserDBIO}
 import forms.ForgotPasswordForm
-import models.services.{AuthTokenServiceImpl, UserServiceImpl}
 import org.webjars.play.WebJarsUtil
 import play.api.i18n.{I18nSupport, Messages}
 import play.api.libs.mailer.{Email, MailerClient}
 import play.api.mvc.{AbstractController, AnyContent, ControllerComponents, Request}
-import utils.auth.DefaultEnv
+import silhouetteIntegration.{DefaultEnv, UserIdentityService}
+import slick.basic.DatabaseConfig
+import slick.jdbc.JdbcProfile
 
 import scala.concurrent.{ExecutionContext, Future}
 
-/**
- * The `Forgot Password` controller.
- *
- * @param components       The Play controller components.
- * @param silhouette       The Silhouette stack.
- * @param userService      The user service implementation.
- * @param authTokenService The auth token service implementation.
- * @param mailerClient     The mailer client.
- * @param webJarsUtil      The webjar util.
- * @param assets           The Play assets finder.
- * @param ex               The execution context.
- */
 class ForgotPasswordController (
   components: ControllerComponents,
+  dbConfig: DatabaseConfig[JdbcProfile],
   silhouette: Silhouette[DefaultEnv],
-  userService: UserServiceImpl,
-  authTokenService: AuthTokenServiceImpl,
+  userService: UserIdentityService,
   mailerClient: MailerClient
 )(
   implicit
@@ -60,9 +50,9 @@ class ForgotPasswordController (
       email => {
         val loginInfo = LoginInfo(CredentialsProvider.ID, email)
         val result = Redirect(routes.SignInController.view()).flashing("info" -> Messages("reset.email.sent"))
-        userService.retrieve(loginInfo).flatMap {
+        dbConfig.db.run(UserDBIO.findOne(loginInfo)).flatMap {
           case Some(user) if user.email.isDefined =>
-            authTokenService.create(user.userID).map { authToken =>
+            dbConfig.db.run(AuthTokenDBIO save user.freshToken).map { authToken =>
               val url = routes.ResetPasswordController.view(authToken.id).absoluteURL()
 
               mailerClient.send(Email(

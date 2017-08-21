@@ -15,26 +15,19 @@ import com.mohiva.play.silhouette.password.{BCryptPasswordHasher, BCryptSha256Pa
 import com.mohiva.play.silhouette.persistence.repositories.DelegableAuthInfoRepository
 import com.softwaremill.macwire._
 import jobs.{AuthTokenCleaner, AuthTokenCleanerWrapper, Scheduler}
-import models.daos._
-import models.services.{AuthTokenServiceImpl, UserServiceImpl}
 import net.ceedubs.ficus.Ficus._
 import net.ceedubs.ficus.readers.ArbitraryTypeReader._
 import play.api.BuiltInComponents
 import play.api.cache.ehcache.EhCacheComponents
-import play.api.db.slick.{DbName, SlickComponents}
 import play.api.mvc.{BodyParsers, DefaultCookieHeaderEncoding}
-import slick.basic.DatabaseConfig
-import slick.jdbc.JdbcProfile
-import utils.auth.{CustomSecuredErrorHandler, CustomUnsecuredErrorHandler, DefaultEnv}
+import silhouetteIntegration.errorHandlers.{CustomSecuredErrorHandler, CustomUnsecuredErrorHandler}
+import silhouetteIntegration.{CookieAuthenticatorRepository, DefaultEnv, PasswordInfoDAO, UserIdentityService}
 
 //noinspection ScalaUnusedSymbol
 trait SilhouetteComponents
 extends BuiltInComponents
 with EhCacheComponents
-with SlickComponents {
-
-  private lazy val dbConfig: DatabaseConfig[JdbcProfile] =
-    slickApi.dbConfig(DbName("default"))
+with DatabaseComponents {
 
   private[this] lazy val defaultCookieHeaderEncoding = new DefaultCookieHeaderEncoding()
 
@@ -53,19 +46,14 @@ with SlickComponents {
   lazy val silhouetteDefaultEnv = wire[SilhouetteProvider[DefaultEnv]]
   private[this] lazy val unsecuredErrorHandler = wire[CustomUnsecuredErrorHandler]
 
-  lazy val userService = wire[UserServiceImpl]
-  private[this] lazy val userDAO = wire[UserDAOSlickImpl]
-//  private[this] lazy val cacheLayer = wire[PlayCacheLayer]
+  lazy val userService = wire[UserIdentityService]
   private[this] lazy val iDGenerator = new SecureRandomIDGenerator()
   private[this] lazy val fingerprintGenerator = new DefaultFingerprintGenerator(false)
   private[this] lazy val eventBus = EventBus()
   lazy val clock = Clock()
 
-  private[this] lazy val authTokenDAO = wire[AuthTokenDAOSlickImpl]
-  lazy val authTokenService: AuthTokenServiceImpl = wire[AuthTokenServiceImpl]
-
   // Replace this with the bindings to your concrete DAOs
-  private[this] lazy val delegableAuthInfoDAOPasswordInfo = wire[PasswordInfoDAOSlickImpl]
+  private[this] lazy val delegableAuthInfoDAOPasswordInfo = wire[PasswordInfoDAO]
 
   /**
    * Provides the Silhouette environment.

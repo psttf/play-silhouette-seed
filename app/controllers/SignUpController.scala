@@ -6,23 +6,25 @@ import com.mohiva.play.silhouette.api._
 import com.mohiva.play.silhouette.api.repositories.AuthInfoRepository
 import com.mohiva.play.silhouette.api.util.PasswordHasherRegistry
 import com.mohiva.play.silhouette.impl.providers._
+import data.{AuthTokenDBIO, UserDBIO}
 import forms.SignUpForm
 import models.User
-import models.services.{AuthTokenServiceImpl, UserServiceImpl}
 import org.webjars.play.WebJarsUtil
 import play.api.i18n.{I18nSupport, Messages}
 import play.api.libs.mailer.{Email, MailerClient}
 import play.api.mvc.{AbstractController, AnyContent, ControllerComponents, Request}
-import utils.auth.DefaultEnv
+import silhouetteIntegration.{DefaultEnv, UserIdentityService}
+import slick.basic.DatabaseConfig
+import slick.jdbc.JdbcProfile
 
 import scala.concurrent.{ExecutionContext, Future}
 
 class SignUpController (
   components: ControllerComponents,
+  dbConfig: DatabaseConfig[JdbcProfile],
   silhouette: Silhouette[DefaultEnv],
-  userService: UserServiceImpl,
+  userService: UserIdentityService,
   authInfoRepository: AuthInfoRepository,
-  authTokenService: AuthTokenServiceImpl,
   passwordHasherRegistry: PasswordHasherRegistry,
   mailerClient: MailerClient
 )(
@@ -52,7 +54,7 @@ class SignUpController (
       data => {
         val result = Redirect(routes.SignUpController.view()).flashing("info" -> Messages("sign.up.email.sent", data.email))
         val loginInfo = LoginInfo(CredentialsProvider.ID, data.email)
-        userService.retrieve(loginInfo).flatMap {
+        dbConfig.db.run(UserDBIO.findOne(loginInfo)).flatMap {
           case Some(user) =>
             val url = routes.SignInController.view().absoluteURL()
             mailerClient.send(Email(
@@ -79,9 +81,9 @@ class SignUpController (
               salt = authInfo.salt
             )
             for {
-              user <- userService.save(user)
+              user <- dbConfig.db.run(UserDBIO.save(user))
               _ <- authInfoRepository.add(loginInfo, authInfo)
-              authToken <- authTokenService.create(user.userID)
+              authToken <- dbConfig.db.run(AuthTokenDBIO save user.freshToken)
             } yield {
               val url = routes.ActivateAccountController.activate(authToken.id).absoluteURL()
               mailerClient.send(Email(

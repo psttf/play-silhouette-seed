@@ -6,35 +6,24 @@ import com.mohiva.play.silhouette.api._
 import com.mohiva.play.silhouette.api.repositories.AuthInfoRepository
 import com.mohiva.play.silhouette.api.util.{PasswordHasherRegistry, PasswordInfo}
 import com.mohiva.play.silhouette.impl.providers.CredentialsProvider
+import data.{AuthTokenDBIO, UserDBIO}
 import forms.ResetPasswordForm
-import models.services.{AuthTokenServiceImpl, UserServiceImpl}
 import org.webjars.play.WebJarsUtil
 import play.api.i18n.{I18nSupport, Messages}
 import play.api.mvc.{AbstractController, AnyContent, ControllerComponents, Request}
-import utils.auth.DefaultEnv
+import silhouetteIntegration.{DefaultEnv, UserIdentityService}
+import slick.basic.DatabaseConfig
+import slick.jdbc.JdbcProfile
 
 import scala.concurrent.{ExecutionContext, Future}
 
-/**
- * The `Reset Password` controller.
- *
- * @param components             The Play controller components.
- * @param silhouette             The Silhouette stack.
- * @param userService            The user service implementation.
- * @param authInfoRepository     The auth info repository.
- * @param passwordHasherRegistry The password hasher registry.
- * @param authTokenService       The auth token service implementation.
- * @param webJarsUtil            The webjar util.
- * @param assets                 The Play assets finder.
- * @param ex                     The execution context.
- */
 class ResetPasswordController (
   components: ControllerComponents,
+  dbConfig: DatabaseConfig[JdbcProfile],
   silhouette: Silhouette[DefaultEnv],
-  userService: UserServiceImpl,
+  userService: UserIdentityService,
   authInfoRepository: AuthInfoRepository,
-  passwordHasherRegistry: PasswordHasherRegistry,
-  authTokenService: AuthTokenServiceImpl
+  passwordHasherRegistry: PasswordHasherRegistry
 )(
   implicit
   webJarsUtil: WebJarsUtil,
@@ -49,7 +38,7 @@ class ResetPasswordController (
    * @return The result to display.
    */
   def view(token: UUID) = silhouette.UnsecuredAction.async { implicit request: Request[AnyContent] =>
-    authTokenService.validate(token).map {
+    dbConfig.db.run(AuthTokenDBIO.lookup(token)).map {
       case Some(_) => Ok(views.html.resetPassword(ResetPasswordForm.form, token))
       case None => Redirect(routes.SignInController.view()).flashing("danger" -> Messages("invalid.reset.link"))
     }
@@ -62,18 +51,19 @@ class ResetPasswordController (
    * @return The result to display.
    */
   def submit(token: UUID) = silhouette.UnsecuredAction.async { implicit request: Request[AnyContent] =>
-    authTokenService.validate(token).flatMap {
+    dbConfig.db.run(AuthTokenDBIO.lookup(token)).flatMap {
       case Some(authToken) =>
         ResetPasswordForm.form.bindFromRequest.fold(
           form => Future.successful(BadRequest(views.html.resetPassword(form, token))),
-          password => userService.retrieve(authToken.userID).flatMap {
-            case Some(user) if user.loginInfo.providerID == CredentialsProvider.ID =>
-              val passwordInfo = passwordHasherRegistry.current.hash(password)
-              authInfoRepository.update[PasswordInfo](user.loginInfo, passwordInfo).map { _ =>
-                Redirect(routes.SignInController.view()).flashing("success" -> Messages("password.reset"))
-              }
-            case _ => Future.successful(Redirect(routes.SignInController.view()).flashing("danger" -> Messages("invalid.reset.link")))
-          }
+          password =>
+            dbConfig.db.run(UserDBIO.lookup(authToken.userID)) flatMap {
+              case Some(user) if user.loginInfo.providerID == CredentialsProvider.ID =>
+                val passwordInfo = passwordHasherRegistry.current.hash(password)
+                authInfoRepository.update[PasswordInfo](user.loginInfo, passwordInfo).map { _ =>
+                  Redirect(routes.SignInController.view()).flashing("success" -> Messages("password.reset"))
+                }
+              case _ => Future.successful(Redirect(routes.SignInController.view()).flashing("danger" -> Messages("invalid.reset.link")))
+            }
         )
       case None => Future.successful(Redirect(routes.SignInController.view()).flashing("danger" -> Messages("invalid.reset.link")))
     }

@@ -4,6 +4,7 @@ import java.util.UUID
 
 import com.mohiva.play.silhouette.api.util.PasswordInfo
 import com.mohiva.play.silhouette.api.{Identity, LoginInfo}
+import org.joda.time.{DateTime, DateTimeZone}
 
 case class User(
   userID: UUID,
@@ -36,6 +37,15 @@ case class User(
       case _ => None
     }
   }
+
+  def freshToken =
+    AuthToken(
+      UUID.randomUUID(),
+      userID,
+      DateTime.now.withZone(DateTimeZone.UTC)
+        .plusSeconds(AuthToken.defaultExpiry.toSeconds.toInt)
+    )
+
 }
 
 object User {

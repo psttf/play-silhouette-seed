@@ -3,20 +3,22 @@ package controllers
 import com.mohiva.play.silhouette.api.Authenticator.Implicits._
 import com.mohiva.play.silhouette.api._
 import com.mohiva.play.silhouette.api.exceptions.ProviderException
-import com.mohiva.play.silhouette.api.util.{ Clock, Credentials }
+import com.mohiva.play.silhouette.api.util.{Clock, Credentials}
 import com.mohiva.play.silhouette.impl.exceptions.IdentityNotFoundException
 import com.mohiva.play.silhouette.impl.providers._
+import data.UserDBIO
 import forms.SignInForm
-import models.services.UserServiceImpl
 import net.ceedubs.ficus.Ficus._
 import org.webjars.play.WebJarsUtil
 import play.api.Configuration
-import play.api.i18n.{ I18nSupport, Messages }
-import play.api.mvc.{ AbstractController, AnyContent, ControllerComponents, Request }
-import utils.auth.DefaultEnv
+import play.api.i18n.{I18nSupport, Messages}
+import play.api.mvc.{AbstractController, AnyContent, ControllerComponents, Request}
+import silhouetteIntegration.{DefaultEnv, UserIdentityService}
+import slick.basic.DatabaseConfig
+import slick.jdbc.JdbcProfile
 
 import scala.concurrent.duration._
-import scala.concurrent.{ ExecutionContext, Future }
+import scala.concurrent.{ExecutionContext, Future}
 
 /**
  * The `Sign In` controller.
@@ -31,12 +33,13 @@ import scala.concurrent.{ ExecutionContext, Future }
  * @param assets                 The Play assets finder.
  */
 class SignInController (
-  components: ControllerComponents,
-  silhouette: Silhouette[DefaultEnv],
-  userService: UserServiceImpl,
-  credentialsProvider: CredentialsProvider,
-  configuration: Configuration,
-  clock: Clock
+                         components: ControllerComponents,
+                         dbConfig: DatabaseConfig[JdbcProfile],
+                         silhouette: Silhouette[DefaultEnv],
+                         userService: UserIdentityService,
+                         credentialsProvider: CredentialsProvider,
+                         configuration: Configuration,
+                         clock: Clock
 )(
   implicit
   webJarsUtil: WebJarsUtil,
@@ -65,7 +68,7 @@ class SignInController (
         val credentials = Credentials(data.email, data.password)
         credentialsProvider.authenticate(credentials).flatMap { loginInfo =>
           val result = Redirect(routes.ApplicationController.index())
-          userService.retrieve(loginInfo).flatMap {
+          dbConfig.db.run(UserDBIO.findOne(loginInfo)).flatMap {
             case Some(user) if !user.activated =>
               Future.successful(Ok(views.html.activateAccount(data.email)))
             case Some(user) =>

@@ -1,7 +1,7 @@
-package utils.auth
+package silhouetteIntegration.errorHandlers
 
 import com.mohiva.play.silhouette.api.actions.SecuredErrorHandler
-import play.api.i18n.{ MessagesApi, I18nSupport, Messages }
+import play.api.i18n.{I18nSupport, Messages, MessagesApi}
 import play.api.mvc.RequestHeader
 import play.api.mvc.Results._
 

@@ -1,4 +1,4 @@
-package models.daos
+package silhouetteIntegration
 
 import com.mohiva.play.silhouette.api.repositories.AuthenticatorRepository
 import com.mohiva.play.silhouette.impl.authenticators.CookieAuthenticator
@@ -30,6 +30,5 @@ extends AuthenticatorRepository[CookieAuthenticator] {
     id: String
   ): Future[Unit] =
     dbConfig.db.run(CookieAuthenticatorDBIO.remove(id))
-
 
 }

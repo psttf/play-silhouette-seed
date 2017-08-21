@@ -28,7 +28,8 @@ with SilhouetteComponents
 with WebJarComponents
 with AssetsComponents
 with SlickEvolutionsComponents
-with EvolutionsComponents {
+with EvolutionsComponents
+with DatabaseComponents {
 
   private implicit val implicitWebJarsUtil = webJarsUtil
   private implicit val implicitAssetsFinder = assetsFinder

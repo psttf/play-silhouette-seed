@@ -1,4 +1,4 @@
-package models.daos
+package silhouetteIntegration
 
 import com.mohiva.play.silhouette.api.LoginInfo
 import com.mohiva.play.silhouette.api.util.PasswordInfo
@@ -7,11 +7,10 @@ import data.UserDBIO
 import slick.basic.DatabaseConfig
 import slick.jdbc.JdbcProfile
 
+import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
-import scala.concurrent.ExecutionContext.Implicits.global
-
-class PasswordInfoDAOSlickImpl(dbConfig: DatabaseConfig[JdbcProfile])
+class PasswordInfoDAO(dbConfig: DatabaseConfig[JdbcProfile])
 extends DelegableAuthInfoDAO[PasswordInfo] {
 
   override def find(loginInfo: LoginInfo): Future[Option[PasswordInfo]] =
