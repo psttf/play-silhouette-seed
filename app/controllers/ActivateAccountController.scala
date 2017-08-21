@@ -5,13 +5,13 @@ import java.util.UUID
 
 import com.mohiva.play.silhouette.api._
 import com.mohiva.play.silhouette.impl.providers.CredentialsProvider
-import models.services.{ AuthTokenService, UserService }
-import play.api.i18n.{ I18nSupport, Messages }
-import play.api.libs.mailer.{ Email, MailerClient }
-import play.api.mvc.{ AbstractController, AnyContent, ControllerComponents, Request }
+import models.services.{AuthTokenServiceImpl, UserServiceImpl}
+import play.api.i18n.{I18nSupport, Messages}
+import play.api.libs.mailer.{Email, MailerClient}
+import play.api.mvc.{AbstractController, AnyContent, ControllerComponents, Request}
 import utils.auth.DefaultEnv
 
-import scala.concurrent.{ ExecutionContext, Future }
+import scala.concurrent.{ExecutionContext, Future}
 
 /**
  * The `Activate Account` controller.
@@ -26,8 +26,8 @@ import scala.concurrent.{ ExecutionContext, Future }
 class ActivateAccountController (
   components: ControllerComponents,
   silhouette: Silhouette[DefaultEnv],
-  userService: UserService,
-  authTokenService: AuthTokenService,
+  userService: UserServiceImpl,
+  authTokenService: AuthTokenServiceImpl,
   mailerClient: MailerClient
 )(
   implicit

@@ -4,10 +4,10 @@ import java.util.UUID
 
 import com.mohiva.play.silhouette.api.util.Clock
 import models.AuthToken
-import models.daos.AuthTokenDAO
+import models.daos.AuthTokenDAOSlickImpl
 import org.joda.time.DateTimeZone
 
-import scala.concurrent.{ ExecutionContext, Future }
+import scala.concurrent.{ExecutionContext, Future}
 import scala.concurrent.duration._
 import scala.language.postfixOps
 
@@ -19,12 +19,9 @@ import scala.language.postfixOps
  * @param ex           The execution context.
  */
 class AuthTokenServiceImpl (
-  authTokenDAO: AuthTokenDAO,
+  authTokenDAO: AuthTokenDAOSlickImpl,
   clock: Clock
-)(
-  implicit
-  ex: ExecutionContext
-) extends AuthTokenService {
+)(implicit ex: ExecutionContext) {
 
   /**
    * Creates a new auth token and saves it in the backing store.

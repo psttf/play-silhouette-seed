@@ -3,7 +3,7 @@ package jobs
 import akka.actor._
 import com.mohiva.play.silhouette.api.util.Clock
 import jobs.AuthTokenCleaner.Clean
-import models.services.AuthTokenService
+import models.services.AuthTokenServiceImpl
 import utils.Logger
 
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -15,9 +15,9 @@ import scala.concurrent.ExecutionContext.Implicits.global
  * @param clock The clock implementation.
  */
 class AuthTokenCleaner (
-  service: AuthTokenService,
-  clock: Clock)
-  extends Actor with Logger {
+  service: AuthTokenServiceImpl,
+  clock: Clock
+) extends Actor with Logger {
 
   /**
    * Process the received messages.

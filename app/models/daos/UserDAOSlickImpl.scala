@@ -10,7 +10,7 @@ import slick.jdbc.JdbcProfile
 
 import scala.concurrent.Future
 
-class UserDAOSlickImpl(dbConfig: DatabaseConfig[JdbcProfile]) extends UserDAO {
+class UserDAOSlickImpl(dbConfig: DatabaseConfig[JdbcProfile]) {
 
   def find(loginInfo: LoginInfo) =
     dbConfig.db.run(UserDBIO.findOne(loginInfo))

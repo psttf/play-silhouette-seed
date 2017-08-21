@@ -13,7 +13,7 @@ import scala.concurrent.Future
 /**
  * Give access to the [[AuthToken]] object.
  */
-class AuthTokenDAOSlickImpl(dbConfig: DatabaseConfig[JdbcProfile]) extends AuthTokenDAO {
+class AuthTokenDAOSlickImpl(dbConfig: DatabaseConfig[JdbcProfile]) {
 
   /**
    * Finds a token by its ID.
@@ -31,10 +31,6 @@ class AuthTokenDAOSlickImpl(dbConfig: DatabaseConfig[JdbcProfile]) extends AuthT
    */
   def findExpired(dateTime: DateTime) =
     dbConfig.db.run(AuthTokenDBIO.findExpired(dateTime))
-//    tokens.filter {
-//      case (_, token) =>
-//        token.expiry.isBefore(dateTime)
-//    }.values.toSeq
 
   /**
    * Saves a token.

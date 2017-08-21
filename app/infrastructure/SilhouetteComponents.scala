@@ -16,7 +16,7 @@ import com.mohiva.play.silhouette.persistence.repositories.DelegableAuthInfoRepo
 import com.softwaremill.macwire._
 import jobs.{AuthTokenCleaner, AuthTokenCleanerWrapper, Scheduler}
 import models.daos._
-import models.services.{AuthTokenService, AuthTokenServiceImpl, UserServiceImpl}
+import models.services.{AuthTokenServiceImpl, UserServiceImpl}
 import net.ceedubs.ficus.Ficus._
 import net.ceedubs.ficus.readers.ArbitraryTypeReader._
 import play.api.BuiltInComponents
@@ -25,7 +25,7 @@ import play.api.db.slick.{DbName, SlickComponents}
 import play.api.mvc.{BodyParsers, DefaultCookieHeaderEncoding}
 import slick.basic.DatabaseConfig
 import slick.jdbc.JdbcProfile
-import utils.auth.{CustomUnsecuredErrorHandler, DefaultEnv}
+import utils.auth.{CustomSecuredErrorHandler, CustomUnsecuredErrorHandler, DefaultEnv}
 
 //noinspection ScalaUnusedSymbol
 trait SilhouetteComponents
@@ -38,7 +38,7 @@ with SlickComponents {
 
   private[this] lazy val defaultCookieHeaderEncoding = new DefaultCookieHeaderEncoding()
 
-  private[this] lazy val securedErrorHandler: SecuredErrorHandler = wire[DefaultSecuredErrorHandler]
+  private[this] lazy val securedErrorHandler: SecuredErrorHandler = wire[CustomSecuredErrorHandler]
 
   private[this] lazy val securedRequestHandler : SecuredRequestHandler = wire[DefaultSecuredRequestHandler]
   private[this] lazy val unsecuredRequestHandler : UnsecuredRequestHandler = wire[DefaultUnsecuredRequestHandler]
@@ -62,7 +62,7 @@ with SlickComponents {
   lazy val clock = Clock()
 
   private[this] lazy val authTokenDAO = wire[AuthTokenDAOSlickImpl]
-  lazy val authTokenService: AuthTokenService = wire[AuthTokenServiceImpl]
+  lazy val authTokenService: AuthTokenServiceImpl = wire[AuthTokenServiceImpl]
 
   // Replace this with the bindings to your concrete DAOs
   private[this] lazy val delegableAuthInfoDAOPasswordInfo = wire[PasswordInfoDAOSlickImpl]

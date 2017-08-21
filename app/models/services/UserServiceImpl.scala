@@ -3,12 +3,14 @@ package models.services
 import java.util.UUID
 
 import com.mohiva.play.silhouette.api.LoginInfo
+import com.mohiva.play.silhouette.api.services.IdentityService
 import models.User
-import models.daos.UserDAO
+import models.daos.UserDAOSlickImpl
 
-import scala.concurrent.{ ExecutionContext, Future }
+import scala.concurrent.{ExecutionContext, Future}
 
-class UserServiceImpl (userDAO: UserDAO)(implicit ex: ExecutionContext) extends UserService {
+class UserServiceImpl(userDAO: UserDAOSlickImpl)(implicit ex: ExecutionContext)
+extends IdentityService[User] {
 
   def retrieve(id: UUID) = userDAO.find(id)
 

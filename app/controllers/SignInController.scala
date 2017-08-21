@@ -7,7 +7,7 @@ import com.mohiva.play.silhouette.api.util.{ Clock, Credentials }
 import com.mohiva.play.silhouette.impl.exceptions.IdentityNotFoundException
 import com.mohiva.play.silhouette.impl.providers._
 import forms.SignInForm
-import models.services.UserService
+import models.services.UserServiceImpl
 import net.ceedubs.ficus.Ficus._
 import org.webjars.play.WebJarsUtil
 import play.api.Configuration
@@ -33,7 +33,7 @@ import scala.concurrent.{ ExecutionContext, Future }
 class SignInController (
   components: ControllerComponents,
   silhouette: Silhouette[DefaultEnv],
-  userService: UserService,
+  userService: UserServiceImpl,
   credentialsProvider: CredentialsProvider,
   configuration: Configuration,
   clock: Clock
