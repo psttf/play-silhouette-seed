@@ -30,19 +30,19 @@ with AssetsComponents
 with SlickEvolutionsComponents
 with EvolutionsComponents {
 
-  implicit val implicitWebJarsUtil = webJarsUtil
-  implicit val implicitAssetsFinder = assetsFinder
+  private implicit val implicitWebJarsUtil = webJarsUtil
+  private implicit val implicitAssetsFinder = assetsFinder
 
   lazy val config = configuration.underlying
 
-  lazy val applicationController = wire[ApplicationController]
-  lazy val signUpController = wire[SignUpController]
-  lazy val signInController = wire[SignInController]
-  lazy val forgotPasswordController = wire[ForgotPasswordController]
-  lazy val resetPasswordController = wire[ResetPasswordController]
-  lazy val changePasswordController = wire[ChangePasswordController]
-  lazy val activateAccountController = wire[ActivateAccountController]
-  lazy val schemaController = wire[SchemaController]
+  private lazy val applicationController = wire[ApplicationController]
+  private lazy val signUpController = wire[SignUpController]
+  private lazy val signInController = wire[SignInController]
+  private lazy val forgotPasswordController = wire[ForgotPasswordController]
+  private lazy val resetPasswordController = wire[ResetPasswordController]
+  private lazy val changePasswordController = wire[ChangePasswordController]
+  private lazy val activateAccountController = wire[ActivateAccountController]
+  private lazy val schemaController = wire[SchemaController]
 
   private lazy val requireJS = wire[RequireJS]
   private lazy val webjarsRouter = wire[webjars.Routes]

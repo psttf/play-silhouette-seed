@@ -1,5 +1,6 @@
 package infrastructure
 
+import akka.actor.Props
 import com.mohiva.play.silhouette.api.actions._
 import com.mohiva.play.silhouette.api.crypto._
 import com.mohiva.play.silhouette.api.repositories.AuthInfoRepository
@@ -13,8 +14,9 @@ import com.mohiva.play.silhouette.impl.util._
 import com.mohiva.play.silhouette.password.{BCryptPasswordHasher, BCryptSha256PasswordHasher}
 import com.mohiva.play.silhouette.persistence.repositories.DelegableAuthInfoRepository
 import com.softwaremill.macwire._
+import jobs.{AuthTokenCleaner, AuthTokenCleanerWrapper, Scheduler}
 import models.daos._
-import models.services.{AuthTokenServiceImpl, UserServiceImpl}
+import models.services.{AuthTokenService, AuthTokenServiceImpl, UserServiceImpl}
 import net.ceedubs.ficus.Ficus._
 import net.ceedubs.ficus.readers.ArbitraryTypeReader._
 import play.api.BuiltInComponents
@@ -34,43 +36,43 @@ with SlickComponents {
   private lazy val dbConfig: DatabaseConfig[JdbcProfile] =
     slickApi.dbConfig(DbName("default"))
 
-  lazy val defaultCookieHeaderEncoding = new DefaultCookieHeaderEncoding()
+  private[this] lazy val defaultCookieHeaderEncoding = new DefaultCookieHeaderEncoding()
 
-  lazy val securedErrorHandler: SecuredErrorHandler = wire[DefaultSecuredErrorHandler]
+  private[this] lazy val securedErrorHandler: SecuredErrorHandler = wire[DefaultSecuredErrorHandler]
 
-  lazy val securedRequestHandler : SecuredRequestHandler = wire[DefaultSecuredRequestHandler]
-  lazy val unsecuredRequestHandler : UnsecuredRequestHandler = wire[DefaultUnsecuredRequestHandler]
-  lazy val userAwareRequestHandler : UserAwareRequestHandler = wire[DefaultUserAwareRequestHandler]
+  private[this] lazy val securedRequestHandler : SecuredRequestHandler = wire[DefaultSecuredRequestHandler]
+  private[this] lazy val unsecuredRequestHandler : UnsecuredRequestHandler = wire[DefaultUnsecuredRequestHandler]
+  private[this] lazy val userAwareRequestHandler : UserAwareRequestHandler = wire[DefaultUserAwareRequestHandler]
 
-  lazy val bpd: BodyParsers.Default = new BodyParsers.Default(playBodyParsers)
+  private[this] lazy val bpd: BodyParsers.Default = new BodyParsers.Default(playBodyParsers)
 
-  lazy val securedAction: SecuredAction = wire[DefaultSecuredAction]
-  lazy val unsecuredAction: UnsecuredAction = wire[DefaultUnsecuredAction]
-  lazy val userAwareAction: UserAwareAction = wire[DefaultUserAwareAction]
+  private[this] lazy val securedAction: SecuredAction = wire[DefaultSecuredAction]
+  private[this] lazy val unsecuredAction: UnsecuredAction = wire[DefaultUnsecuredAction]
+  private[this] lazy val userAwareAction: UserAwareAction = wire[DefaultUserAwareAction]
 
   lazy val silhouetteDefaultEnv = wire[SilhouetteProvider[DefaultEnv]]
-  lazy val unsecuredErrorHandler = wire[CustomUnsecuredErrorHandler]
+  private[this] lazy val unsecuredErrorHandler = wire[CustomUnsecuredErrorHandler]
 
   lazy val userService = wire[UserServiceImpl]
-  lazy val userDAO = wire[UserDAOSlickImpl]
-//  lazy val cacheLayer = wire[PlayCacheLayer]
-  lazy val iDGenerator = new SecureRandomIDGenerator()
-  lazy val fingerprintGenerator = new DefaultFingerprintGenerator(false)
-  lazy val eventBus = EventBus()
+  private[this] lazy val userDAO = wire[UserDAOSlickImpl]
+//  private[this] lazy val cacheLayer = wire[PlayCacheLayer]
+  private[this] lazy val iDGenerator = new SecureRandomIDGenerator()
+  private[this] lazy val fingerprintGenerator = new DefaultFingerprintGenerator(false)
+  private[this] lazy val eventBus = EventBus()
   lazy val clock = Clock()
 
-  lazy val authTokenDAO = wire[AuthTokenDAOSlickImpl]
-  lazy val authTokenService = wire[AuthTokenServiceImpl]
+  private[this] lazy val authTokenDAO = wire[AuthTokenDAOSlickImpl]
+  lazy val authTokenService: AuthTokenService = wire[AuthTokenServiceImpl]
 
   // Replace this with the bindings to your concrete DAOs
-  lazy val delegableAuthInfoDAOPasswordInfo = wire[PasswordInfoDAOSlickImpl]
+  private[this] lazy val delegableAuthInfoDAOPasswordInfo = wire[PasswordInfoDAOSlickImpl]
 
   /**
    * Provides the Silhouette environment.
    *
    * @return The Silhouette environment.
    */
-  lazy val silhouetteEnvironment: Environment[DefaultEnv] = {
+  private[this] lazy val silhouetteEnvironment: Environment[DefaultEnv] = {
     Environment[DefaultEnv](
       userService,
       authenticatorService,
@@ -84,7 +86,7 @@ with SlickComponents {
    *
    * @return The signer for the authenticator.
    */
-  lazy val authenticatorSigner: Signer = {
+  private[this] lazy val authenticatorSigner: Signer = {
     val config = configuration.underlying.as[JcaSignerSettings]("silhouette.authenticator.signer")
 
     new JcaSigner(config)
@@ -95,7 +97,7 @@ with SlickComponents {
    *
    * @return The crypter for the authenticator.
    */
-  lazy val authenticatorCrypter: Crypter = {
+  private[this] lazy val authenticatorCrypter: Crypter = {
     val config = configuration.underlying.as[JcaCrypterSettings]("silhouette.authenticator.crypter")
 
     new JcaCrypter(config)
@@ -117,7 +119,7 @@ with SlickComponents {
    *
    * @return The authenticator service.
    */
-  lazy val authenticatorService: AuthenticatorService[CookieAuthenticator] = {
+  private[this] lazy val authenticatorService: AuthenticatorService[CookieAuthenticator] = {
 
     val config = configuration.underlying.as[CookieAuthenticatorSettings]("silhouette.authenticator")
     val authenticatorEncoder = new CrypterAuthenticatorEncoder(authenticatorCrypter)
@@ -148,5 +150,12 @@ with SlickComponents {
 
     new CredentialsProvider(authInfoRepository, passwordHasherRegistry)
   }
+
+  private[this] lazy val authTokenCleaner =
+    AuthTokenCleanerWrapper(actorSystem.actorOf(Props(wire[AuthTokenCleaner])))
+
+  private[this] lazy val scheduler = wire[Scheduler]
+
+  scheduler
 
 }
