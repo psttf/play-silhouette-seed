@@ -1,10 +1,11 @@
-package controllers
+package controllers.auth
 
 import java.net.URLDecoder
 import java.util.UUID
 
 import com.mohiva.play.silhouette.api._
 import com.mohiva.play.silhouette.impl.providers.CredentialsProvider
+
 import data.{AuthTokenDBIO, UserDBIO}
 import play.api.i18n.{I18nSupport, Messages}
 import play.api.libs.mailer.{Email, MailerClient}
@@ -40,8 +41,8 @@ class ActivateAccountController (
             subject = Messages("email.activate.account.subject"),
             from = Messages("email.from"),
             to = Seq(decodedEmail),
-            bodyText = Some(views.txt.emails.activateAccount(user, url).body),
-            bodyHtml = Some(views.html.emails.activateAccount(user, url).body)
+            bodyText = Some(views.txt.auth.emails.activateAccount(user, url).body),
+            bodyHtml = Some(views.html.auth.emails.activateAccount(user, url).body)
           ))
           result
         }

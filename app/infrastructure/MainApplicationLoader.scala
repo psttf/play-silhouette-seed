@@ -1,6 +1,7 @@
 package infrastructure
 
-import _root_.controllers.{ActivateAccountController, ApplicationController, ChangePasswordController, ForgotPasswordController, ResetPasswordController, SignInController, SignUpController, _}
+import _root_.controllers.auth._
+import _root_.controllers._
 import com.softwaremill.macwire._
 import org.webjars.play.{RequireJS, WebJarComponents}
 import play.api.ApplicationLoader.Context

@@ -1,4 +1,4 @@
-package controllers
+package controllers.auth
 
 import java.util.UUID
 
@@ -6,6 +6,7 @@ import com.mohiva.play.silhouette.api._
 import com.mohiva.play.silhouette.api.repositories.AuthInfoRepository
 import com.mohiva.play.silhouette.api.util.{PasswordHasherRegistry, PasswordInfo}
 import com.mohiva.play.silhouette.impl.providers.CredentialsProvider
+import controllers.AssetsFinder
 import data.{AuthTokenDBIO, UserDBIO}
 import forms.ResetPasswordForm
 import org.webjars.play.WebJarsUtil
@@ -39,7 +40,7 @@ class ResetPasswordController (
    */
   def view(token: UUID) = silhouette.UnsecuredAction.async { implicit request: Request[AnyContent] =>
     dbConfig.db.run(AuthTokenDBIO.lookup(token)).map {
-      case Some(_) => Ok(views.html.resetPassword(ResetPasswordForm.form, token))
+      case Some(_) => Ok(views.html.auth.resetPassword(ResetPasswordForm.form, token))
       case None => Redirect(routes.SignInController.view()).flashing("danger" -> Messages("invalid.reset.link"))
     }
   }
@@ -54,7 +55,7 @@ class ResetPasswordController (
     dbConfig.db.run(AuthTokenDBIO.lookup(token)).flatMap {
       case Some(authToken) =>
         ResetPasswordForm.form.bindFromRequest.fold(
-          form => Future.successful(BadRequest(views.html.resetPassword(form, token))),
+          form => Future.successful(BadRequest(views.html.auth.resetPassword(form, token))),
           password =>
             dbConfig.db.run(UserDBIO.lookup(authToken.userID)) flatMap {
               case Some(user) if user.loginInfo.providerID == CredentialsProvider.ID =>
