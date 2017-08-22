@@ -22,6 +22,7 @@ libraryDependencies ++= Seq(
   "org.webjars" % "bootstrap" % "3.3.7" exclude("org.webjars", "jquery"),
   "org.webjars" % "jquery" % "3.2.1",
   "com.iheart" %% "ficus" % "1.4.1",
+  "org.webjars" % "zxcvbn" % "4.3.0",
   "com.typesafe.play" %% "play-mailer" % "6.0.1",
   "com.enragedginger" %% "akka-quartz-scheduler" % "1.6.1-akka-2.5.x",
   "com.adrianhurt" %% "play-bootstrap" % "1.2-P26-B3",
