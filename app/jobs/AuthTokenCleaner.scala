@@ -1,29 +1,21 @@
 package jobs
 
-import javax.inject.Inject
-
 import akka.actor._
 import com.mohiva.play.silhouette.api.util.Clock
+import data.AuthTokenDBIO
 import jobs.AuthTokenCleaner.Clean
-import models.services.AuthTokenService
-import utils.Logger
+import org.joda.time.DateTimeZone
+import slick.basic.DatabaseConfig
+import slick.jdbc.JdbcProfile
 
 import scala.concurrent.ExecutionContext.Implicits.global
+import scala.concurrent.Future
 
-/**
- * A job which cleanup invalid auth tokens.
- *
- * @param service The auth token service implementation.
- * @param clock The clock implementation.
- */
-class AuthTokenCleaner @Inject() (
-  service: AuthTokenService,
-  clock: Clock)
-  extends Actor with Logger {
+class AuthTokenCleaner (
+  dbConfig: DatabaseConfig[JdbcProfile],
+  clock: Clock
+) extends Actor with ActorLogging {
 
-  /**
-   * Process the received messages.
-   */
   def receive: Receive = {
     case Clean =>
       val start = clock.now.getMillis
@@ -31,25 +23,31 @@ class AuthTokenCleaner @Inject() (
       msg.append("=================================\n")
       msg.append("Start to cleanup auth tokens\n")
       msg.append("=================================\n")
-      service.clean.map { deleted =>
+      clean.map { deleted =>
         val seconds = (clock.now.getMillis - start) / 1000
         msg.append("Total of %s auth tokens(s) were deleted in %s seconds".format(deleted.length, seconds)).append("\n")
         msg.append("=================================\n")
 
         msg.append("=================================\n")
-        logger.info(msg.toString)
+        log.info(msg.toString)
       }.recover {
         case e =>
           msg.append("Couldn't cleanup auth tokens because of unexpected error\n")
           msg.append("=================================\n")
-          logger.error(msg.toString, e)
+          log.error(msg.toString, e)
       }
   }
+
+  def clean =
+    dbConfig.db run
+      AuthTokenDBIO.findExpired(clock.now.withZone(DateTimeZone.UTC))  flatMap (
+        tokens =>
+          Future.sequence(tokens map ( token =>
+            dbConfig.db.run(AuthTokenDBIO.remove(token.id)).map(_ => token)))
+      )
+
 }
 
-/**
- * The companion object.
- */
 object AuthTokenCleaner {
   case object Clean
 }

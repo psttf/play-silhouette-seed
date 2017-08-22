@@ -2,29 +2,27 @@ package models
 
 import java.util.UUID
 
-import com.mohiva.play.silhouette.api.{ Identity, LoginInfo }
+import com.mohiva.play.silhouette.api.util.PasswordInfo
+import com.mohiva.play.silhouette.api.{Identity, LoginInfo}
+import org.joda.time.{DateTime, DateTimeZone}
 
-/**
- * The user object.
- *
- * @param userID The unique ID of the user.
- * @param loginInfo The linked login info.
- * @param firstName Maybe the first name of the authenticated user.
- * @param lastName Maybe the last name of the authenticated user.
- * @param fullName Maybe the full name of the authenticated user.
- * @param email Maybe the email of the authenticated provider.
- * @param avatarURL Maybe the avatar URL of the authenticated provider.
- * @param activated Indicates that the user has activated its registration.
- */
 case class User(
   userID: UUID,
-  loginInfo: LoginInfo,
+  providerID: String,
+  providerKey: String,
   firstName: Option[String],
   lastName: Option[String],
   fullName: Option[String],
   email: Option[String],
-  avatarURL: Option[String],
-  activated: Boolean) extends Identity {
+  activated: Boolean,
+  hasher: String,
+  password: String,
+  salt: Option[String] = None
+) extends Identity {
+
+  lazy val loginInfo = LoginInfo(providerID, providerKey)
+
+  lazy val passwordInfo = PasswordInfo(hasher, password, salt)
 
   /**
    * Tries to construct a name.
@@ -39,4 +37,40 @@ case class User(
       case _ => None
     }
   }
+
+  def freshToken =
+    AuthToken(
+      UUID.randomUUID(),
+      userID,
+      DateTime.now.withZone(DateTimeZone.UTC)
+        .plusSeconds(AuthToken.defaultExpiry.toSeconds.toInt)
+    )
+
+}
+
+object User {
+  def withLoginInfo(
+    userID: UUID,
+    loginInfo: LoginInfo,
+    firstName: Option[String],
+    lastName: Option[String],
+    fullName: Option[String],
+    email: Option[String],
+    activated: Boolean,
+    hasher: String,
+    password: String,
+    salt: Option[String] = None
+  ) = apply(
+    userID,
+    loginInfo.providerID,
+    loginInfo.providerKey,
+    firstName,
+    lastName,
+    fullName,
+    email,
+    activated,
+    hasher,
+    password,
+    salt
+  )
 }

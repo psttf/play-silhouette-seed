@@ -1,6 +1,5 @@
-// Comment to get more information during initialization
-logLevel := Level.Warn
+addSbtPlugin("net.virtual-void" % "sbt-dependency-graph" % "0.8.2")
+
+addSbtPlugin("com.timushev.sbt" % "sbt-updates" % "0.3.1")
 
 addSbtPlugin("com.typesafe.play" % "sbt-plugin" % "2.6.3")
-
-addSbtPlugin("org.scalariform" % "sbt-scalariform" % "1.6.0")
